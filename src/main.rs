@@ -11,7 +11,7 @@ async fn main() -> std::io::Result<()> {
     // Panic if we cannot read configuration
     let configuration = get_configuration().expect("Failed to read configurtion.");
     
-    let connection = PgPool::connect(&configuration.database.connection_string())
+    let connection_pool = PgPool::connect(&configuration.database.connection_string())
         .await 
         .expect("Failed to connect to Postgres.");
 
@@ -21,5 +21,5 @@ async fn main() -> std::io::Result<()> {
 
     println!("Server is now listening on http://127.0.0.1:{}", configuration.application_port);
     
-    run(listener, connection)?.await 
+    run(listener, connection_pool)?.await 
 }
