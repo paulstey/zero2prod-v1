@@ -1,0 +1,1 @@
+curl -i -X POST -d 'email=chicken_salad@hotmail.com&name=Chicken' http://127.0.0.1:8000/subscriptions
