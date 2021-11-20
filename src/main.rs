@@ -15,15 +15,15 @@ async fn main() -> std::io::Result<()> {
     // Panic if we cannot read configuration
     let configuration = get_configuration().expect("Failed to read configurtion.");
     
-    let connection_pool = PgPool::connect(&configuration.database.connection_string())
-        .await 
+    let connection_pool = PgPool::connect_lazy(&configuration.database.connection_string())
         .expect("Failed to connect to Postgres.");
 
     // We have removed the hard-coded `8000` - it's now coming from our setting
-    let address = format!("127.0.0.1:{}", configuration.application_port);
+    let address = format!("{}:{}", 
+        configuration.application.host, configuration.application.port);
     let listener = TcpListener::bind(address)?;
 
-    println!("Server is now listening on http://127.0.0.1:{}", configuration.application_port);
+    println!("Server is now listening on {}:{}", configuration.application.host, configuration.application.port);
     
     run(listener, connection_pool)?.await 
 }
