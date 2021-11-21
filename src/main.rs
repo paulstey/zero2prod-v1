@@ -2,7 +2,7 @@
 use zero2prod::configuration::get_configuration;
 use zero2prod::startup::run;
 use zero2prod::telemetry::{get_subscriber, init_subscriber};
-use sqlx::PgPool;
+use sqlx::postgres::PgPoolOptions;
 use std::net::TcpListener;
 
 
@@ -15,8 +15,10 @@ async fn main() -> std::io::Result<()> {
     // Panic if we cannot read configuration
     let configuration = get_configuration().expect("Failed to read configurtion.");
     
-    let connection_pool = PgPool::connect_lazy(&configuration.database.connection_string())
-        .expect("Failed to connect to Postgres.");
+    let connection_pool = PgPoolOptions::new()
+        .connect_timeout(std::time::Duration::from_secs(2))
+        .connect_lazy_with(configuration.database.with_db()); 
+
 
     // We have removed the hard-coded `8000` - it's now coming from our setting
     let address = format!("{}:{}", 
