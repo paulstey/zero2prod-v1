@@ -1,8 +1,8 @@
 //! src/configuration.rs
 use std::convert::{TryFrom, TryInto};
 use serde_aux::field_attributes::deserialize_number_from_string;
-use sqlx::postgres::PgConnectOptions;
-use sqlx::postgres::PgSslMode;
+use sqlx::postgres::{PgConnectOptions, PgSslMode};
+use sqlx::ConnectOptions;
 
 
 #[derive(serde::Deserialize)]
@@ -48,7 +48,9 @@ impl DatabaseSettings {
     }
 
     pub fn with_db(&self) -> PgConnectOptions {
-        self.without_db().database(&self.database_name).log_statements(log::LevelFilter::Trace)
+        let mut options = self.without_db().database(&self.database_name);
+        options.log_statements(log::LevelFilter::Trace);
+        options
     }
 }
 
@@ -71,7 +73,7 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
 
     // Layer on the environment-specific values 
     settings.merge(
-        config::File::from(configuration_directory.join(environment.as_str())).required(true)
+        config::File::from(configuration_directory.join(environment.as_str())).required(true),
     )?;
 
     // Add in settings from environment variables (with a prefix of APP and `__` as separator)
@@ -108,7 +110,7 @@ impl TryFrom<String> for Environment {
 
     fn try_from(s: String) -> Result<Self, Self::Error> {
         match s.to_lowercase().as_str() {
-            "local" => Ok(Self::Production),
+            "local" => Ok(Self::Local),
             "production" => Ok(Self::Production),
             other => Err(format!(
                 "{} is not a supported environment. Use either `local` or `production`.",
